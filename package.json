@@ -1,0 +1,25 @@
+{
+  "name": "discord-gemini-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot tích hợp Google Gemini AI và quản lý System Prompt",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "deploy": "node src/deploy.js"
+  },
+  "keywords": [
+    "discord",
+    "discordjs",
+    "gemini",
+    "google-ai",
+    "ai-bot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "discord.js": "^14.27.0",
+    "dotenv": "^18.0.8"
+  }
+}
