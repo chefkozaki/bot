@@ -1,5 +1,6 @@
 const { Client, GatewayIntentBits, Partials, Events, ActivityType } = require('discord.js');
 const config = require('./src/config');
+const { deployCommands } = require('./src/deploy');
 const promptManager = require('./src/services/promptManager');
 const { handleMessageCreate } = require('./src/handlers/messageCreate');
 const { handleInteractionCreate } = require('./src/handlers/interactionCreate');
@@ -85,6 +86,9 @@ async function main() {
 
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+  // Đăng ký Slash Commands với Discord API
+  await deployCommands();
 
   // Đăng nhập vào Discord
   try {
