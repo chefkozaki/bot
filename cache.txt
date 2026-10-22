@@ -1,0 +1,33 @@
+Hoàn toàn làm được, và Gemini làm việc này cực kỳ xuất sắc!
+  
+  Mô hình Google Gemini vốn là mô hình đa phương thức (multimodal) gốc. Bạn không cần cài thêm bất
+  kỳ công cụ OCR (nhận diện chữ) nào khác, Gemini có thể tự:                                        
+  
+  • Đọc chữ trong ảnh (tiếng Việt, tiếng Anh, chữ viết tay, chụp màn hình, ảnh scan tài liệu).      
+  • Giải bài tập từ ảnh chụp đề bài (Toán, Lý, Hóa, Code, trắc nghiệm...).                          
+  • Dịch văn bản trong ảnh sang ngôn ngữ khác.
+  • Phân tích biểu đồ, giải thích hình ảnh, meme...
+  ──────
+  ### Cách thức hoạt động trong Discord Bot:
+  
+  1. Bắt ảnh từ Discord: Khi người dùng ping bot và đính kèm ảnh, Discord cung cấp thông tin qua    
+  message.attachments.                                                                              
+  2. Chuyển ảnh sang dạng Base64: Tải file ảnh tạm từ URL Discord về bộ nhớ và mã hóa sang Base64:
+    const response = await fetch(attachment.url);                                                   
+    const buffer = await response.arrayBuffer(); 
+    const imagePart = {
+      inlineData: {    
+        data: Buffer.from(buffer).toString("base64"),
+        mimeType: attachment.contentType, // ví dụ: 'image/png', 'image/jpeg'
+      },
+    };  
+       
+  3. Gửi cho Gemini: Đưa cả câu hỏi (prompt) và dữ liệu ảnh vào hàm gọi API:
+    const result = await model.generateContent([userPrompt, ...imageParts]);
+    
+  ──────
+  │ Bạn có muốn tôi tích hợp tính năng này trực tiếp vào mã nguồn bot của bạn ngay bây giờ không?
+  │                                                                                                 
+  │ Khi tích hợp, người dùng chỉ cần ping @Bot + đính kèm ảnh (kèm câu hỏi hoặc không cần câu hỏi
+  thì                                                                                               
+  │ bot sẽ tự phân tích/đọc ảnh).

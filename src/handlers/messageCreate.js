@@ -1,4 +1,4 @@
-const geminiService = require('../services/gemini');
+const groqService = require('../services/groq');
 const promptManager = require('../services/promptManager');
 const { splitMessage } = require('../utils/splitMessage');
 
@@ -41,8 +41,8 @@ async function handleMessageCreate(message, client) {
       `| Đang kết hợp với System Prompt (${activeSystemPrompt.length} ký tự)`
     );
 
-    // Gửi câu hỏi đến Google Gemini AI kết hợp với System Prompt
-    const aiResponse = await geminiService.ask(userPrompt);
+    // Gửi câu hỏi đến Groq AI kết hợp với System Prompt
+    const aiResponse = await groqService.ask(userPrompt);
 
     // Chia nhỏ phản hồi nếu dài quá giới hạn 2000 ký tự của Discord
     const messageChunks = splitMessage(aiResponse, { maxLength: 1900 });

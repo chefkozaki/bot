@@ -7,7 +7,7 @@ const { handleInteractionCreate } = require('./src/handlers/interactionCreate');
 
 async function main() {
   console.log('='.repeat(50));
-  console.log('🤖 KHỞI ĐỘNG DISCORD GEMINI AI BOT');
+  console.log('🤖 KHỞI ĐỘNG DISCORD GROQ AI BOT');
   console.log('='.repeat(50));
 
   // Kiểm tra cấu hình môi trường
@@ -37,7 +37,7 @@ async function main() {
   client.once(Events.ClientReady, (readyClient) => {
     console.log(`✅ Bot đã đăng nhập thành công với tên: ${readyClient.user.tag}`);
     console.log(`📡 Đang hoạt động trên ${readyClient.guilds.cache.size} máy chủ.`);
-    console.log(`🧠 AI Model sử dụng: ${config.geminiModel}`);
+    console.log(`🧠 AI Model sử dụng: ${config.groqModel}`);
     console.log(`📝 System Prompt hiện tại:\n"${promptManager.getSystemPrompt().slice(0, 100)}..."`);
 
     if (config.allowedRoleIds.length > 0) {
@@ -63,7 +63,7 @@ async function main() {
     console.log('='.repeat(50));
   });
 
-  // Lắng nghe sự kiện tin nhắn mới (Ping bot để hỏi Gemini)
+  // Lắng nghe sự kiện tin nhắn mới (Ping bot để hỏi AI)
   client.on(Events.MessageCreate, async (message) => {
     await handleMessageCreate(message, client);
   });

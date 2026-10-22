@@ -120,7 +120,7 @@ module.exports = {
         .setDescription(`\`\`\`txt\n${displayPrompt}\n\`\`\``)
         .addFields(
           { name: '👤 Người cập nhật', value: `${interaction.user}`, inline: true },
-          { name: '🤖 AI Model', value: `\`${config.geminiModel}\``, inline: true }
+          { name: '🤖 AI Model', value: `\`${config.groqModel}\``, inline: true }
         )
         .setFooter({ text: 'System Prompt mới sẽ được áp dụng ngay lập tức cho các câu hỏi tiếp theo.' })
         .setTimestamp();

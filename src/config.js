@@ -7,9 +7,9 @@ const config = {
   clientId: process.env.CLIENT_ID || '',
   guildId: process.env.GUILD_ID || '',
 
-  // Gemini credentials
-  geminiApiKey: process.env.GEMINI_API_KEY || '',
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  // Groq credentials
+  groqApiKey: process.env.GROQ_API_KEY || '',
+  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
 
   // Role permissions for /changesys
   allowedRoleIds: (process.env.ALLOWED_ROLE_ID || '')
@@ -30,7 +30,7 @@ const config = {
   validate() {
     const missing = [];
     if (!this.discordToken) missing.push('DISCORD_TOKEN');
-    if (!this.geminiApiKey) missing.push('GEMINI_API_KEY');
+    if (!this.groqApiKey) missing.push('GROQ_API_KEY');
 
     if (missing.length > 0) {
       console.warn(

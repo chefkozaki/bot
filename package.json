@@ -1,7 +1,7 @@
 {
-  "name": "discord-gemini-bot",
+  "name": "discord-groq-bot",
   "version": "1.0.0",
-  "description": "Discord Bot tích hợp Google Gemini AI và quản lý System Prompt",
+  "description": "Discord Bot tích hợp Groq AI và quản lý System Prompt",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -11,15 +11,16 @@
   "keywords": [
     "discord",
     "discordjs",
-    "gemini",
-    "google-ai",
+    "groq",
+    "groq-ai",
+    "llama",
     "ai-bot"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "discord.js": "^14.27.0",
-    "dotenv": "^18.0.8"
+    "dotenv": "^18.0.8",
+    "groq-sdk": "^1.6.0"
   }
 }

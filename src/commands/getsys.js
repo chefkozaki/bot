@@ -37,10 +37,10 @@ module.exports = {
       .setTitle('📋 System Prompt Hiện Tại')
       .setDescription(`\`\`\`txt\n${displayPrompt}\n\`\`\``)
       .addFields(
-        { name: '🤖 AI Model', value: `\`${config.geminiModel}\``, inline: true },
+        { name: '🤖 AI Model', value: `\`${config.groqModel}\``, inline: true },
         { name: '🕒 Cập nhật lần cuối', value: formattedTime, inline: true }
       )
-      .setFooter({ text: 'Google Gemini AI Discord Bot' })
+      .setFooter({ text: 'Groq AI Discord Bot' })
       .setTimestamp();
 
     if (isTruncated) {
