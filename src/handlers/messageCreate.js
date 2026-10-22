@@ -1,5 +1,7 @@
 const groqService = require('../services/groq');
 const promptManager = require('../services/promptManager');
+const channelManager = require('../services/channelManager');
+const config = require('../config');
 const { splitMessage } = require('../utils/splitMessage');
 
 /**
@@ -11,7 +13,42 @@ async function handleMessageCreate(message, client) {
   // Bỏ qua tin nhắn từ bot hoặc webhook
   if (message.author.bot) return;
 
-  // Kiểm tra xem bot có được mention trực tiếp không (không tính @everyone hoặc @here)
+  // 1. Kiểm tra xem kênh hoặc kênh cha (nếu là thread) có bị tắt bot hay không (/disable)
+  const isChannelDisabled =
+    channelManager.isChannelDisabled(message.channelId) ||
+    (message.channel.isThread?.() && channelManager.isChannelDisabled(message.channel.parentId));
+
+  if (isChannelDisabled) return;
+
+  // 2. Tính năng tắt trả lời khi người dùng reply tin nhắn của bot
+  if (config.ignoreBotReplies && message.reference && message.reference.messageId) {
+    let isReplyToBot = false;
+
+    // Kiểm tra nhanh qua thuộc tính repliedUser trong mentions
+    if (message.mentions.repliedUser && message.mentions.repliedUser.id === client.user.id) {
+      isReplyToBot = true;
+    } else {
+      // Nếu không có trong repliedUser, kiểm tra cache hoặc fetch tin nhắn gốc
+      try {
+        const referencedMessage =
+          message.channel.messages.cache.get(message.reference.messageId) ||
+          (await message.channel.messages.fetch(message.reference.messageId).catch(() => null));
+
+        if (referencedMessage && referencedMessage.author.id === client.user.id) {
+          isReplyToBot = true;
+        }
+      } catch (err) {
+        // Bỏ qua nếu tin nhắn gốc đã bị xóa hoặc không fetch được
+      }
+    }
+
+    if (isReplyToBot) {
+      console.log(`[Chat] Bỏ qua tin nhắn reply đến bot từ ${message.author.tag}`);
+      return;
+    }
+  }
+
+  // 3. Kiểm tra xem bot có được mention trực tiếp không (không tính @everyone hoặc @here)
   const isBotMentioned = message.mentions.users.has(client.user.id);
   if (!isBotMentioned) return;
 

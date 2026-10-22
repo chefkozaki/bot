@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const promptManager = require('../services/promptManager');
+const channelManager = require('../services/channelManager');
 const config = require('../config');
 
 module.exports = {
@@ -32,13 +33,28 @@ module.exports = {
       isTruncated = true;
     }
 
+    const disabledChannels = channelManager.getDisabledChannels();
+    const disabledChannelsText = disabledChannels.length > 0
+      ? disabledChannels.map((id) => `<#${id}>`).join(', ')
+      : '*(Không có kênh nào bị tắt)*';
+
     const embed = new EmbedBuilder()
-      .setColor(0x4285F4) // Google Blue
-      .setTitle('📋 System Prompt Hiện Tại')
+      .setColor(0x4285F4)
+      .setTitle('📋 Cấu Hình & System Prompt Hiện Tại')
       .setDescription(`\`\`\`txt\n${displayPrompt}\n\`\`\``)
       .addFields(
         { name: '🤖 AI Model', value: `\`${config.groqModel}\``, inline: true },
-        { name: '🕒 Cập nhật lần cuối', value: formattedTime, inline: true }
+        { name: '🕒 Cập nhật lần cuối', value: formattedTime, inline: true },
+        {
+          name: '💬 Phản hồi khi Reply bot',
+          value: config.ignoreBotReplies ? '🔇 Đã tắt (Không trả lời khi reply bot)' : '🔊 Bật (Có trả lời)',
+          inline: true,
+        },
+        {
+          name: '🔇 Các kênh đang bị tắt bot (/disable)',
+          value: disabledChannelsText,
+          inline: false,
+        }
       )
       .setFooter({ text: 'Groq AI Discord Bot' })
       .setTimestamp();

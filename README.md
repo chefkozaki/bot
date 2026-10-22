@@ -1,25 +1,37 @@
-# 🤖 Discord Gemini AI Bot (Node.js & Discord.js v14)
+# 🤖 Discord Groq AI Bot (Node.js & Discord.js v14)
 
-Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện **Discord.js v14**, tích hợp trực tiếp **Google Gemini AI API** để trả lời câu hỏi của người dùng khi được ping (`@mention`), đồng thời hỗ trợ quản lý và lưu trữ **System Prompt** động qua Slash Commands với phân quyền Role.
+Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện **Discord.js v14**, tích hợp trực tiếp **Groq AI API (Llama 3.3, Llama 3.1,...)** siêu nhanh để trả lời câu hỏi của người dùng khi được ping (`@mention`), đồng thời hỗ trợ quản lý và lưu trữ **System Prompt** động qua Slash Commands với phân quyền Role, quản lý bật/tắt bot theo kênh (`/disable`, `/enable`) và tùy chọn tắt phản hồi khi reply bot.
 
 ---
 
 ## 🌟 Tính Năng Nổi Bật
 
 1. **Hỏi đáp với AI khi Ping Bot:**
-   - Khi người dùng ping trực tiếp Bot (`@Bot <câu hỏi>`), Bot sẽ kích hoạt trạng thái gõ phím (*typing indicator*) và gọi Google Gemini API để trả lời.
-   - **Tất cả câu hỏi trước khi gửi đến AI đều được tự động kết hợp với System Prompt** (thông qua cơ chế `systemInstruction` chuẩn của Google Gemini).
+   - Khi người dùng ping trực tiếp Bot (`@Bot <câu hỏi>`), Bot sẽ kích hoạt trạng thái gõ phím (*typing indicator*) và gọi Groq API với tốc độ cực nhanh để trả lời.
+   - **Tất cả câu hỏi trước khi gửi đến AI đều được tự động kết hợp với System Prompt** (được gửi dưới dạng message `system` chuẩn của OpenAI/Groq API).
    - Tự động chia nhỏ tin nhắn nếu phản hồi dài vượt quá 2000 ký tự (chuẩn Discord) và giữ nguyên định dạng Markdown/khối code (` ``` `).
 
-2. **Lệnh Quản Lý System Prompt:**
-   - `/getsys`: Hiển thị System Prompt hiện tại, model đang dùng và thời gian cập nhật gần nhất dưới dạng Embed đẹp mắt. Có tùy chọn xem ẩn danh (`an_danh: true`).
+2. **Tắt phản hồi khi Reply tin nhắn của Bot:**
+   - Khi người dùng click reply vào tin nhắn của bot, bot sẽ **tự động bỏ qua và không trả lời**, tránh việc spam hoặc chen ngang khi người dùng chỉ muốn trích dẫn lại câu trả lời cũ của bot.
+   - Tính năng có thể bật/tắt linh hoạt qua biến môi trường `IGNORE_BOT_REPLIES=true` trong file `.env`.
+
+3. **Quản lý bật/tắt Bot theo kênh (`/disable` & `/enable`):**
+   - `/disable [kenh]`: Tắt bot ở một kênh cụ thể (hoặc kênh hiện tại nếu để trống). Khi bị tắt, bot sẽ không phản hồi bất kỳ tin nhắn hoặc ping nào tại kênh đó (kể cả các thread thuộc kênh).
+   - `/enable [kenh]`: Bật lại bot ở kênh đã bị tắt (hoặc kênh hiện tại).
+   - Danh sách các kênh bị tắt được lưu bền vững vào `data/disabled_channels.json`.
+   - Yêu cầu người dùng có Role được chỉ định (`ALLOWED_ROLE_ID`) hoặc quyền **Administrator** trên máy chủ.
+
+4. **Lệnh Quản Lý System Prompt:**
+   - `/getsys`: Hiển thị System Prompt hiện tại, model Groq đang dùng, trạng thái reply và danh sách các kênh đang bị tắt bot dưới dạng Embed. Có tùy chọn xem ẩn danh (`an_danh: true`).
    - `/changesys`: Thay đổi System Prompt. **Chỉ người dùng có Role được chỉ định (hoặc quản trị viên Administrator) mới được sử dụng.**
      - Nhập nhanh qua tham số: `/changesys prompt: "Nội dung prompt mới..."`
      - Hoặc gõ `/changesys` (không điền tham số) để mở **Bảng soạn thảo đa dòng (Modal)** với nội dung prompt hiện tại được điền sẵn để dễ dàng chỉnh sửa.
      - Tùy chọn khôi phục về prompt ban đầu (`reset_mac_dinh: true`).
 
-3. **Lưu trữ bền vững (Persistence):**
-   - System Prompt được lưu vào file `data/system_prompt.txt`. Khi Bot khởi động lại, System Prompt vẫn được giữ nguyên mà không bị mất.
+5. **Lưu trữ bền vững (Persistence):**
+   - System Prompt được lưu vào file `data/system_prompt.txt`.
+   - Danh sách các kênh bị tắt bot được lưu vào file `data/disabled_channels.json`.
+   - Khi Bot khởi động lại, mọi dữ liệu cấu hình đều được giữ nguyên.
 
 ---
 
@@ -28,18 +40,23 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
 ```
 .
 ├── data/
-│   └── system_prompt.txt       # File lưu trữ System Prompt hiện tại
+│   ├── system_prompt.txt       # File lưu trữ System Prompt hiện tại
+│   └── disabled_channels.json  # File lưu trữ danh sách kênh đang bị tắt bot
 ├── src/
 │   ├── commands/
 │   │   ├── getsys.js           # Xử lý lệnh /getsys
-│   │   └── changesys.js        # Xử lý lệnh /changesys & kiểm tra phân quyền Role
+│   │   ├── changesys.js        # Xử lý lệnh /changesys
+│   │   ├── disable.js          # Xử lý lệnh /disable (tắt bot tại kênh)
+│   │   └── enable.js           # Xử lý lệnh /enable (bật lại bot tại kênh)
 │   ├── handlers/
-│   │   ├── messageCreate.js    # Bắt sự kiện ping bot và phản hồi AI
+│   │   ├── messageCreate.js    # Bắt sự kiện ping bot, lọc reply bot và phản hồi AI
 │   │   └── interactionCreate.js# Điều hướng Slash commands & Modal form
 │   ├── services/
-│   │   ├── gemini.js           # Kết nối Google Generative AI (Gemini)
-│   │   └── promptManager.js    # Quản lý đọc/ghi và lưu trữ System Prompt
+│   │   ├── groq.js             # Kết nối Groq AI API
+│   │   ├── promptManager.js    # Quản lý đọc/ghi và lưu trữ System Prompt
+│   │   └── channelManager.js   # Quản lý đọc/ghi danh sách kênh bị tắt
 │   ├── utils/
+│   │   ├── permission.js       # Kiểm tra phân quyền Role / Administrator
 │   │   └── splitMessage.js     # Chia nhỏ văn bản an toàn khi vượt quá 2000 ký tự
 │   ├── config.js               # Đọc và xác thực cấu hình biến môi trường
 │   ├── deploy.js               # Đăng ký Slash Commands với Discord API
@@ -56,7 +73,7 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
 
 ### Bước 1: Yêu cầu chuẩn bị
 - **Node.js** phiên bản 18 trở lên (đã kiểm tra tương thích tốt trên Node 20, 22 và 24).
-- Tài khoản [Google AI Studio](https://aistudio.google.com/) để lấy Gemini API Key miễn phí.
+- Tài khoản [Groq Console](https://console.groq.com/keys) để lấy Groq API Key miễn phí.
 - Tài khoản [Discord Developer Portal](https://discord.com/developers/applications) để tạo Bot.
 
 ---
@@ -64,7 +81,7 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
 ### Bước 2: Thiết lập Discord Bot trên Developer Portal
 
 1. Truy cập [Discord Developer Portal](https://discord.com/developers/applications) và nhấn **New Application**.
-2. Đặt tên cho ứng dụng (ví dụ: `Gemini Assistant`).
+2. Đặt tên cho ứng dụng (ví dụ: `Groq AI Assistant`).
 3. Vào tab **General Information**: sao chép **Application ID** (đây là `CLIENT_ID`).
 4. Vào tab **Bot**:
    - Nhấn **Reset Token** để lấy Bot Token (đây là `DISCORD_TOKEN`).
@@ -78,17 +95,17 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
 
 ---
 
-### Bước 3: Lấy Google Gemini API Key
-1. Truy cập [Google AI Studio](https://aistudio.google.com/).
-2. Nhấn vào **Get API key** -> **Create API key**.
-3. Sao chép API Key thu được (đây là `GEMINI_API_KEY`).
+### Bước 3: Lấy Groq API Key
+1. Truy cập [Groq Console](https://console.groq.com/keys).
+2. Đăng nhập hoặc tạo tài khoản miễn phí.
+3. Nhấn vào **Create API Key**, đặt tên và sao chép API Key thu được (đây là `GROQ_API_KEY`).
 
 ---
 
-### Bước 4: Lấy Role ID trên Discord (cho phân quyền `/changesys`)
+### Bước 4: Lấy Role ID trên Discord (cho phân quyền `/changesys`, `/disable`, `/enable`)
 1. Trên ứng dụng Discord, vào **Cài đặt người dùng (User Settings)** -> **Nâng cao (Advanced)** -> Bật **Chế độ nhà phát triển (Developer Mode)**.
 2. Vào **Cài đặt máy chủ (Server Settings)** -> **Vai trò (Roles)**.
-3. Nhấp chuột phải vào Role bạn muốn cấp quyền sử dụng lệnh `/changesys` -> Chọn **Sao chép ID vai trò (Copy Role ID)**.
+3. Nhấp chuột phải vào Role bạn muốn cấp quyền sử dụng các lệnh quản lý -> Chọn **Sao chép ID vai trò (Copy Role ID)**.
 *(Lưu ý: Bất kỳ thành viên nào có quyền Administrator trên server cũng mặc định được phép dùng lệnh).*
 
 ---
@@ -116,17 +133,20 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
    # (Tùy chọn) Server ID để Slash Commands cập nhật ngay lập tức:
    GUILD_ID=
 
-   # Google Gemini API Key
-   GEMINI_API_KEY=AIzaSy...your_gemini_key
+   # Groq API Key (từ https://console.groq.com/keys)
+   GROQ_API_KEY=gsk_...your_groq_key
 
-   # Model Gemini sử dụng (mặc định: gemini-2.5-flash hoặc gemini-1.5-flash)
-   GEMINI_MODEL=gemini-2.5-flash
+   # Model Groq sử dụng (mặc định: llama-3.3-70b-versatile hoặc llama-3.1-8b-instant)
+   GROQ_MODEL=llama-3.3-70b-versatile
 
-   # ID của Role được phép thay đổi System Prompt
+   # ID của Role được phép thay đổi System Prompt và tắt/bật bot theo kênh
    ALLOWED_ROLE_ID=987654321098765432
 
    # Tùy chọn tên Role dự phòng
    ALLOWED_ROLE_NAME=Bot Manager,Admin
+
+   # Tùy chọn tắt phản hồi khi reply bot (mặc định: true)
+   IGNORE_BOT_REPLIES=true
    ```
 
 ---
@@ -163,18 +183,29 @@ Nghĩa là Bot đã sẵn sàng hoạt động!
 ### 1. Trò chuyện cùng Bot (Ping @Bot)
 Gõ tin nhắn có mention bot ở bất kỳ kênh văn bản nào mà bot có quyền xem:
 ```
-@GeminiBot Hãy tóm tắt nội dung cuốn sách Nhà Giả Kim trong 3 gạch đầu dòng.
+@GroqBot Hãy tóm tắt nội dung cuốn sách Nhà Giả Kim trong 3 gạch đầu dòng.
 ```
 - Bot sẽ hiển thị trạng thái đang soạn tin nhắn (*typing...*).
 - Câu hỏi sẽ được kết hợp chặt chẽ với System Prompt hiện tại để tạo câu trả lời đúng định dạng và phong cách mong muốn.
+- **Nếu bạn click Reply vào tin nhắn của Bot**, bot sẽ tự động bỏ qua và không trả lời (giữ không gian trò chuyện gọn gàng).
 
-### 2. Xem System Prompt hiện tại (`/getsys`)
+### 2. Tắt bot tại một kênh cụ thể (`/disable`)
+*(Yêu cầu Role quản trị hoặc quyền Administrator)*
+- **Tắt kênh hiện tại:** `/disable`
+- **Tắt một kênh cụ thể:** `/disable kenh: #kenh-can-tat`
+- Sau khi tắt, bot sẽ không trả lời tin nhắn hay ping trong kênh đó (và các thread của kênh đó).
+
+### 3. Bật lại bot tại một kênh (`/enable`)
+*(Yêu cầu Role quản trị hoặc quyền Administrator)*
+- **Bật lại kênh hiện tại:** `/enable`
+- **Bật lại kênh cụ thể:** `/enable kenh: #kenh-can-bat`
+
+### 4. Xem System Prompt & Trạng thái Bot (`/getsys`)
 - Gõ `/getsys` trong khung chat.
-- Bot sẽ trả về Embed hiển thị toàn bộ System Prompt hiện hành cùng thông tin ngày giờ cập nhật và Model AI đang dùng.
+- Bot sẽ trả về Embed hiển thị toàn bộ System Prompt hiện hành, model AI đang dùng, trạng thái bỏ qua reply bot và danh sách tất cả các kênh đang bị tắt bot.
 
-### 3. Thay đổi System Prompt (`/changesys`)
+### 5. Thay đổi System Prompt (`/changesys`)
 *(Yêu cầu người dùng có Role quy định trong `ALLOWED_ROLE_ID` hoặc quyền Administrator).*
-
 - **Cách 1 (Mở bảng soạn thảo Modal):**
   Chỉ cần gõ `/changesys` và Enter. Một hộp thoại popup sẽ xuất hiện với khung soạn thảo văn bản nhiều dòng và nội dung prompt hiện tại đã được điền sẵn, giúp bạn dễ dàng bổ sung hoặc chỉnh sửa.
 - **Cách 2 (Nhập nhanh):**
@@ -188,7 +219,8 @@ Gõ tin nhắn có mention bot ở bất kỳ kênh văn bản nào mà bot có 
 
 | Vấn đề | Nguyên nhân & Cách khắc phục |
 |---|---|
-| Bot không phản hồi khi ping | Kiểm tra xem đã bật **Message Content Intent** trong tab Bot trên Discord Developer Portal chưa. |
+| Bot không phản hồi khi ping | Kiểm tra xem đã bật **Message Content Intent** trong tab Bot trên Discord Developer Portal chưa, hoặc kiểm tra xem kênh có đang bị `/disable` không (dùng `/getsys` để xem). |
+| Bot không phản hồi khi reply tin nhắn | Đây là tính năng mặc định để tránh spam. Bạn có thể đặt `IGNORE_BOT_REPLIES=false` trong file `.env` nếu muốn bot phản hồi khi reply. |
 | Báo lỗi `Missing Access` khi đăng ký lệnh | Kiểm tra lại `CLIENT_ID` trong file `.env` đã đúng với Application ID chưa. |
-| Báo lỗi `API_KEY_INVALID` từ Gemini | Kiểm tra lại `GEMINI_API_KEY` đã được sao chép chính xác từ Google AI Studio chưa. |
-| Người dùng có role nhưng bị báo từ chối quyền `/changesys` | Đảm bảo bạn đã sao chép đúng ID dạng số của Role (ví dụ: `123456789...`) vào biến `ALLOWED_ROLE_ID` trong file `.env`. |
+| Báo lỗi `Groq API Key không hợp lệ` | Kiểm tra lại `GROQ_API_KEY` đã được sao chép chính xác từ https://console.groq.com/keys chưa. |
+| Người dùng có role nhưng bị báo từ chối quyền `/disable` hoặc `/changesys` | Đảm bảo bạn đã sao chép đúng ID dạng số của Role (ví dụ: `123456789...`) vào biến `ALLOWED_ROLE_ID` trong file `.env`. |

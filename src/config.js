@@ -25,6 +25,12 @@ const config = {
   // File paths
   dataDir: path.resolve(__dirname, '../data'),
   systemPromptFile: path.resolve(__dirname, '../data/system_prompt.txt'),
+  disabledChannelsFile: path.resolve(__dirname, '../data/disabled_channels.json'),
+
+  // Reply settings
+  // true: bỏ qua không trả lời khi user reply tin nhắn của bot
+  // false: vẫn trả lời bình thường khi reply
+  ignoreBotReplies: process.env.IGNORE_BOT_REPLIES !== 'false',
 
   // Validation
   validate() {

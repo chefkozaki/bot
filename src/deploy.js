@@ -2,10 +2,14 @@ const { REST, Routes } = require('discord.js');
 const config = require('./config');
 const getsysCommand = require('./commands/getsys');
 const changesysCommand = require('./commands/changesys');
+const disableCommand = require('./commands/disable');
+const enableCommand = require('./commands/enable');
 
 const commands = [
   getsysCommand.data.toJSON(),
   changesysCommand.data.toJSON(),
+  disableCommand.data.toJSON(),
+  enableCommand.data.toJSON(),
 ];
 
 async function deployCommands() {

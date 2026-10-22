@@ -3,6 +3,8 @@ const promptManager = require('../services/promptManager');
 const config = require('../config');
 const getsysCommand = require('../commands/getsys');
 const changesysCommand = require('../commands/changesys');
+const disableCommand = require('../commands/disable');
+const enableCommand = require('../commands/enable');
 
 /**
  * Xử lý tất cả các tương tác (Slash command, Modal submit,...)
@@ -21,6 +23,14 @@ async function handleInteractionCreate(interaction, client) {
 
       if (commandName === 'changesys') {
         return await changesysCommand.execute(interaction);
+      }
+
+      if (commandName === 'disable') {
+        return await disableCommand.execute(interaction);
+      }
+
+      if (commandName === 'enable') {
+        return await enableCommand.execute(interaction);
       }
     }
 

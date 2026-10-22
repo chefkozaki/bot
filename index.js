@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits, Partials, Events, ActivityType } = require('d
 const config = require('./src/config');
 const { deployCommands } = require('./src/deploy');
 const promptManager = require('./src/services/promptManager');
+const channelManager = require('./src/services/channelManager');
 const { handleMessageCreate } = require('./src/handlers/messageCreate');
 const { handleInteractionCreate } = require('./src/handlers/interactionCreate');
 
@@ -15,6 +16,9 @@ async function main() {
 
   // Khởi tạo PromptManager (tải từ file lưu trữ)
   await promptManager.init();
+
+  // Khởi tạo ChannelManager (tải danh sách kênh bị tắt)
+  await channelManager.init();
 
   if (!config.discordToken) {
     console.error('❌ KHÔNG THỂ KHỞI ĐỘNG: Thiếu DISCORD_TOKEN trong file .env.');
@@ -45,8 +49,12 @@ async function main() {
     } else if (config.allowedRoleNames.length > 0) {
       console.log(`🔒 Allowed Role Names: ${config.allowedRoleNames.join(', ')}`);
     } else {
-      console.log('ℹ️ Chưa cấu hình ALLOWED_ROLE_ID: Mặc định chỉ quản trị viên (Administrator) được dùng /changesys.');
+      console.log('ℹ️ Chưa cấu hình ALLOWED_ROLE_ID: Mặc định chỉ quản trị viên (Administrator) được dùng /changesys, /disable, /enable.');
     }
+
+    const disabledList = channelManager.getDisabledChannels();
+    console.log(`🔇 Kênh đang bị tắt (${disabledList.length}): ${disabledList.length > 0 ? disabledList.join(', ') : 'Không có'}`);
+    console.log(`💬 Bỏ qua reply đến bot: ${config.ignoreBotReplies ? 'ĐANG BẬT (Không trả lời khi reply)' : 'ĐANG TẮT (Vẫn trả lời)'}`);
 
     // Đặt trạng thái hoạt động của Bot
     readyClient.user.setPresence({
