@@ -1,8 +1,8 @@
 const { Client, GatewayIntentBits, Partials, Events, ActivityType } = require('discord.js');
-const config = require('./config');
-const promptManager = require('./services/promptManager');
-const { handleMessageCreate } = require('./handlers/messageCreate');
-const { handleInteractionCreate } = require('./handlers/interactionCreate');
+const config = require('./src/config');
+const promptManager = require('./src/services/promptManager');
+const { handleMessageCreate } = require('./src/handlers/messageCreate');
+const { handleInteractionCreate } = require('./src/handlers/interactionCreate');
 
 async function main() {
   console.log('='.repeat(50));
