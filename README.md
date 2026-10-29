@@ -21,14 +21,34 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
    - Danh sách các kênh bị tắt được lưu bền vững vào `data/disabled_channels.json`.
    - Yêu cầu người dùng có Role được chỉ định (`ALLOWED_ROLE_ID`) hoặc quyền **Administrator** trên máy chủ.
 
-4. **Lệnh Quản Lý System Prompt:**
+4. **Lệnh Điều Hành & Kỷ Luật (Moderation) qua Turso Database:**
+   - ⚠️ `/warn <username> <reason>`: Cảnh cáo thành viên và gửi tin nhắn riêng (DM) cảnh báo.
+   - 🔇 `/mute <username> <time> <reason>`: Tắt tiếng (Timeout) thành viên với thời hạn linh hoạt (`10m`, `1h`, `2d`, `7d`,...).
+   - 👢 `/kick <username> <reason>`: Trục xuất thành viên khỏi máy chủ.
+   - 🔨 `/ban <username> <reason>`: Cấm thành viên khỏi máy chủ.
+   - **Thông báo ngay lập tức sau khi thực hiện:**
+     - Người bị xử lý (`@mention` + tag + ID)
+     - Người xử lý (`@mention` + tag)
+     - Lý do xử lý
+     - **Số lần bị xử lý cùng kiểu:** Thông báo chính xác đây là lần thứ mấy thành viên bị warn/mute/kick/ban trên server.
+   - **Tra cứu lịch sử kỷ luật (Moderation Lists):**
+     - `/warnlist [username]`: Hiển thị danh sách các thành viên bị warn, số lần và lý do.
+     - `/mutelist [username]`: Danh sách các thành viên bị mute.
+     - `/kicklist [username]`: Danh sách các thành viên bị kick.
+     - `/banlist [username]`: Danh sách các thành viên bị ban.
+     - *(Nếu để trống `username`: xem danh sách tổng hợp toàn server; Nếu chọn `username`: xem lịch sử chi tiết từng lần của thành viên đó)*.
+   - **Lưu trữ qua Turso Database:** Tất cả dữ liệu kỷ luật được lưu trữ trên Turso Cloud Database (`@libsql/client`) hoặc tự động fallback sang SQLite cục bộ nếu chưa cấu hình URL.
+   - **Bảo vệ thứ bậc Role (Hierarchy Check):** Tự động chặn việc xử lý người có Role cao hơn hoặc bằng bản thân / Bot, ngăn ngừa lỗi quyền hạn.
+
+5. **Lệnh Quản Lý System Prompt:**
    - `/getsys`: Hiển thị System Prompt hiện tại, model Groq đang dùng, trạng thái reply và danh sách các kênh đang bị tắt bot dưới dạng Embed. Có tùy chọn xem ẩn danh (`an_danh: true`).
    - `/changesys`: Thay đổi System Prompt. **Chỉ người dùng có Role được chỉ định (hoặc quản trị viên Administrator) mới được sử dụng.**
      - Nhập nhanh qua tham số: `/changesys prompt: "Nội dung prompt mới..."`
      - Hoặc gõ `/changesys` (không điền tham số) để mở **Bảng soạn thảo đa dòng (Modal)** với nội dung prompt hiện tại được điền sẵn để dễ dàng chỉnh sửa.
      - Tùy chọn khôi phục về prompt ban đầu (`reset_mac_dinh: true`).
 
-5. **Lưu trữ bền vững (Persistence):**
+6. **Lưu trữ bền vững (Persistence):**
+   - Lịch sử vi phạm Moderation lưu qua **Turso Database** (`@libsql/client`).
    - System Prompt được lưu vào file `data/system_prompt.txt`.
    - Danh sách các kênh bị tắt bot được lưu vào file `data/disabled_channels.json`.
    - Khi Bot khởi động lại, mọi dữ liệu cấu hình đều được giữ nguyên.
@@ -41,25 +61,38 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
 .
 ├── data/
 │   ├── system_prompt.txt       # File lưu trữ System Prompt hiện tại
-│   └── disabled_channels.json  # File lưu trữ danh sách kênh đang bị tắt bot
+│   ├── disabled_channels.json  # File lưu trữ danh sách kênh đang bị tắt bot
+│   └── moderation.db           # SQLite cục bộ dự phòng (khi chưa cấu hình Turso)
 ├── src/
 │   ├── commands/
-│   │   ├── getsys.js           # Xử lý lệnh /getsys
-│   │   ├── changesys.js        # Xử lý lệnh /changesys
-│   │   ├── disable.js          # Xử lý lệnh /disable (tắt bot tại kênh)
-│   │   └── enable.js           # Xử lý lệnh /enable (bật lại bot tại kênh)
+│   │   ├── ban.js              # Lệnh /ban
+│   │   ├── banlist.js          # Lệnh /banlist
+│   │   ├── changesys.js        # Lệnh /changesys
+│   │   ├── disable.js          # Lệnh /disable (tắt bot tại kênh)
+│   │   ├── enable.js           # Lệnh /enable (bật lại bot tại kênh)
+│   │   ├── getsys.js           # Lệnh /getsys
+│   │   ├── kick.js             # Lệnh /kick
+│   │   ├── kicklist.js         # Lệnh /kicklist
+│   │   ├── mute.js             # Lệnh /mute (tắt tiếng có thời hạn)
+│   │   ├── mutelist.js         # Lệnh /mutelist
+│   │   ├── warn.js             # Lệnh /warn (cảnh cáo)
+│   │   └── warnlist.js         # Lệnh /warnlist
 │   ├── handlers/
 │   │   ├── messageCreate.js    # Bắt sự kiện ping bot, lọc reply bot và phản hồi AI
-│   │   └── interactionCreate.js# Điều hướng Slash commands & Modal form
+│   │   └── interactionCreate.js# Tự động nạp và điều hướng Slash commands & Modal form
 │   ├── services/
+│   │   ├── db.js               # Kết nối Database Turso (@libsql/client) & lưu trữ vi phạm
 │   │   ├── groq.js             # Kết nối Groq AI API
 │   │   ├── promptManager.js    # Quản lý đọc/ghi và lưu trữ System Prompt
 │   │   └── channelManager.js   # Quản lý đọc/ghi danh sách kênh bị tắt
 │   ├── utils/
+│   │   ├── createListCommand.js# Helper tạo các lệnh xem danh sách vi phạm
+│   │   ├── duration.js         # Phân tích cú pháp thời gian (10m, 1h, 1d,...)
+│   │   ├── moderationHelper.js # Kiểm tra thứ bậc vai trò (Role Hierarchy)
 │   │   ├── permission.js       # Kiểm tra phân quyền Role / Administrator
 │   │   └── splitMessage.js     # Chia nhỏ văn bản an toàn khi vượt quá 2000 ký tự
 │   ├── config.js               # Đọc và xác thực cấu hình biến môi trường
-│   ├── deploy.js               # Đăng ký Slash Commands với Discord API
+│   ├── deploy.js               # Reset cache, xoá lệnh cũ và đăng ký Slash Commands
 │   └── index.js                # Điểm khởi chạy chính của Bot
 ├── .env.example                # File mẫu cấu hình biến môi trường
 ├── .gitignore                  # Bỏ qua node_modules, .env,...

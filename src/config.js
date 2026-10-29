@@ -11,6 +11,10 @@ const config = {
   groqApiKey: process.env.GROQ_API_KEY || '',
   groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
 
+  // Turso credentials
+  tursoDatabaseUrl: process.env.TURSO_DATABASE_URL || '',
+  tursoAuthToken: process.env.TURSO_AUTH_TOKEN || '',
+
   // Role permissions for /changesys
   allowedRoleIds: (process.env.ALLOWED_ROLE_ID || '')
     .split(',')

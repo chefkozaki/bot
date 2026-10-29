@@ -1,10 +1,26 @@
+const fs = require('fs');
+const path = require('path');
 const { EmbedBuilder } = require('discord.js');
 const promptManager = require('../services/promptManager');
 const config = require('../config');
-const getsysCommand = require('../commands/getsys');
 const changesysCommand = require('../commands/changesys');
-const disableCommand = require('../commands/disable');
-const enableCommand = require('../commands/enable');
+
+// Nạp tự động các commands từ thư mục commands
+const commands = new Map();
+const commandsPath = path.join(__dirname, '../commands');
+if (fs.existsSync(commandsPath)) {
+  const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js'));
+  for (const file of commandFiles) {
+    try {
+      const command = require(path.join(commandsPath, file));
+      if (command && command.data && command.data.name) {
+        commands.set(command.data.name, command);
+      }
+    } catch (err) {
+      console.error(`[Interaction] Lỗi khi nạp file lệnh ${file}:`, err);
+    }
+  }
+}
 
 /**
  * Xử lý tất cả các tương tác (Slash command, Modal submit,...)
@@ -16,21 +32,10 @@ async function handleInteractionCreate(interaction, client) {
     // 1. Xử lý Slash Commands (ChatInputCommand)
     if (interaction.isChatInputCommand()) {
       const { commandName } = interaction;
+      const command = commands.get(commandName);
 
-      if (commandName === 'getsys') {
-        return await getsysCommand.execute(interaction);
-      }
-
-      if (commandName === 'changesys') {
-        return await changesysCommand.execute(interaction);
-      }
-
-      if (commandName === 'disable') {
-        return await disableCommand.execute(interaction);
-      }
-
-      if (commandName === 'enable') {
-        return await enableCommand.execute(interaction);
+      if (command && typeof command.execute === 'function') {
+        return await command.execute(interaction);
       }
     }
 

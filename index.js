@@ -3,6 +3,7 @@ const config = require('./src/config');
 const { deployCommands } = require('./src/deploy');
 const promptManager = require('./src/services/promptManager');
 const channelManager = require('./src/services/channelManager');
+const db = require('./src/services/db');
 const { handleMessageCreate } = require('./src/handlers/messageCreate');
 const { handleInteractionCreate } = require('./src/handlers/interactionCreate');
 
@@ -19,6 +20,9 @@ async function main() {
 
   // Khởi tạo ChannelManager (tải danh sách kênh bị tắt)
   await channelManager.init();
+
+  // Khởi tạo Database Turso / SQLite cho Moderation
+  await db.init();
 
   if (!config.discordToken) {
     console.error('❌ KHÔNG THỂ KHỞI ĐỘNG: Thiếu DISCORD_TOKEN trong file .env.');
