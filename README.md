@@ -10,6 +10,7 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
    - Khi người dùng ping trực tiếp Bot (`@Bot <câu hỏi>`), Bot sẽ kích hoạt trạng thái gõ phím (*typing indicator*) và gọi Groq API với tốc độ cực nhanh để trả lời.
    - **Tất cả câu hỏi trước khi gửi đến AI đều được tự động kết hợp với System Prompt** (được gửi dưới dạng message `system` chuẩn của OpenAI/Groq API).
    - Tự động chia nhỏ tin nhắn nếu phản hồi dài vượt quá 2000 ký tự (chuẩn Discord) và giữ nguyên định dạng Markdown/khối code (` ``` `).
+   - Tự động bỏ qua các tin nhắn ping `@everyone` hoặc `@here` để tránh phản hồi không mong muốn khi có thông báo toàn server.
 
 2. **Tắt phản hồi khi Reply tin nhắn của Bot:**
    - Khi người dùng click reply vào tin nhắn của bot, bot sẽ **tự động bỏ qua và không trả lời**, tránh việc spam hoặc chen ngang khi người dùng chỉ muốn trích dẫn lại câu trả lời cũ của bot.

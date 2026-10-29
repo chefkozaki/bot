@@ -39,6 +39,10 @@ async function main() {
       GatewayIntentBits.DirectMessages,
     ],
     partials: [Partials.Channel, Partials.Message],
+    allowedMentions: {
+      parse: ['users', 'roles'],
+      repliedUser: false,
+    },
   });
 
   // Sự kiện khi Bot sẵn sàng hoạt động

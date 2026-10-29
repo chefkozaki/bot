@@ -20,7 +20,12 @@ async function handleMessageCreate(message, client) {
 
   if (isChannelDisabled) return;
 
-  // 2. Tính năng tắt trả lời khi người dùng reply tin nhắn của bot
+  // 2. Bỏ qua tin nhắn ping @everyone hoặc @here
+  if (message.mentions.everyone || /@(everyone|here)/i.test(message.content || '')) {
+    return;
+  }
+
+  // 3. Tính năng tắt trả lời khi người dùng reply tin nhắn của bot
   if (config.ignoreBotReplies && message.reference && message.reference.messageId) {
     let isReplyToBot = false;
 
@@ -48,7 +53,7 @@ async function handleMessageCreate(message, client) {
     }
   }
 
-  // 3. Kiểm tra xem bot có được mention trực tiếp không (không tính @everyone hoặc @here)
+  // 4. Kiểm tra xem bot có được mention trực tiếp không
   const isBotMentioned = message.mentions.users.has(client.user.id);
   if (!isBotMentioned) return;
 
