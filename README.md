@@ -169,8 +169,10 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
    # Client ID của ứng dụng
    CLIENT_ID=123456789012345678
 
-   # (Tùy chọn) Server ID để Slash Commands cập nhật ngay lập tức:
-   GUILD_ID=
+   # (Tùy chọn) Danh sách Server ID để đăng ký lệnh ngay lập tức:
+   GUILD_IDS=123456789012345678,987654321098765432
+
+   # Để trống nếu muốn đăng ký Global thay vì Guild
 
    # Groq API Key (từ https://console.groq.com/keys)
    GROQ_API_KEY=gsk_...your_groq_key
@@ -196,7 +198,7 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
    ```bash
    npm run deploy
    ```
-   *(Nếu bạn có điền `GUILD_ID` trong `.env`, lệnh sẽ xuất hiện ngay lập tức trên Server đó).*
+   *Khi cấu hình `GUILD_IDS`, lệnh được đăng ký ngay lập tức cho đúng các server trong danh sách. Khi để trống, lệnh được đăng ký ở chế độ Global và có thể mất vài phút đến 1 giờ để đồng bộ.*
 
 2. **Khởi động Bot:**
    ```bash

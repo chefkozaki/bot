@@ -37,10 +37,7 @@ function loadCommands() {
 }
 
 /**
- * Triển khai Slash Commands:
- * 1. Reset bộ nhớ đệm (cache) và nạp danh sách lệnh mới nhất.
- * 2. Xoá sạch toàn bộ các lệnh cũ trên Discord (Guild và Global).
- * 3. Đăng ký và cập nhật danh sách lệnh mới lên Discord API.
+ * Triển khai Slash Commands cho danh sách Guild được cấu hình hoặc ở chế độ Global.
  */
 async function deployCommands() {
   if (!config.discordToken || !config.clientId) {
@@ -59,57 +56,36 @@ async function deployCommands() {
 
     console.log(`[Deploy] 📦 Đã tải ${loadedCommands.length} lệnh: ${commandNames || 'Không có lệnh nào'}`);
 
-    if (config.guildId) {
-      // --- TRIỂN KHAI CHO SERVER CỤ THỂ (GUILD) ---
-      console.log(`[Deploy] 🎯 Đang cấu hình cho Server cụ thể (Guild ID: ${config.guildId})...`);
+    const guildIds = [...new Set(config.guildIds)].filter(Boolean);
 
-      // 2. Xoá sạch các lệnh cũ trên Guild
-      console.log('[Deploy] 🗑️ Đang xoá toàn bộ lệnh cũ trên Guild...');
-      await rest.put(
-        Routes.applicationGuildCommands(config.clientId, config.guildId),
-        { body: [] }
-      );
-      console.log('[Deploy] ✅ Đã xoá toàn bộ lệnh cũ trên Guild thành công.');
+    if (guildIds.length > 0) {
+      console.log(`[Deploy] 🎯 Đang đăng ký lệnh ngay lập tức cho ${guildIds.length} server...`);
 
-      // 3. Xoá các lệnh Global cũ (nếu có) để tránh hiện tượng trùng lặp hoặc ghost commands trên server
-      try {
-        console.log('[Deploy] 🧹 Đang dọn dẹp các lệnh Global cũ (nếu có)...');
-        await rest.put(
-          Routes.applicationCommands(config.clientId),
-          { body: [] }
-        );
-        console.log('[Deploy] ✅ Đã dọn dẹp các lệnh Global cũ thành công.');
-      } catch (globalErr) {
-        console.warn('[Deploy] ⚠️ Không thể dọn dẹp lệnh Global cũ (có thể bỏ qua):', globalErr.message);
+      for (const guildId of guildIds) {
+        try {
+          const registered = await rest.put(
+            Routes.applicationGuildCommands(config.clientId, guildId),
+            { body: commandPayloads }
+          );
+          console.log(`[Deploy] ✅ Đã đăng ký ${registered.length} lệnh cho Server ${guildId}: ${commandNames}`);
+        } catch (error) {
+          console.error(`[Deploy] ❌ Không thể đăng ký lệnh cho Server ${guildId}:`, error.message);
+        }
       }
-
-      // 4. Đăng ký danh sách lệnh mới cho Guild
-      console.log(`[Deploy] 🚀 Đang cập nhật ${commandPayloads.length} lệnh mới cho Guild...`);
-      const registered = await rest.put(
-        Routes.applicationGuildCommands(config.clientId, config.guildId),
-        { body: commandPayloads }
-      );
-      console.log(`[Deploy] ✅ Đã cập nhật thành công ${registered.length} lệnh mới cho Server: ${commandNames}`);
     } else {
-      // --- TRIỂN KHAI TOÀN CỤC (GLOBAL) ---
-      console.log('[Deploy] 🌐 Đang cấu hình cho chế độ Toàn Cục (Global)...');
+      console.log('[Deploy] 🌐 Không có GUILD_IDS; đang đăng ký lệnh ở chế độ Global...');
 
-      // 2. Xoá sạch toàn bộ lệnh Global cũ
-      console.log('[Deploy] 🗑️ Đang xoá toàn bộ lệnh Global cũ...');
       await rest.put(
         Routes.applicationCommands(config.clientId),
         { body: [] }
       );
-      console.log('[Deploy] ✅ Đã xoá toàn bộ lệnh Global cũ thành công.');
 
-      // 3. Đăng ký danh sách lệnh mới Toàn Cục
-      console.log(`[Deploy] 🚀 Đang cập nhật ${commandPayloads.length} lệnh mới Toàn Cục...`);
       const registered = await rest.put(
         Routes.applicationCommands(config.clientId),
         { body: commandPayloads }
       );
-      console.log(`[Deploy] ✅ Đã cập nhật thành công ${registered.length} lệnh mới Toàn Cục: ${commandNames}`);
-      console.log('[Deploy] ℹ️ Lưu ý: Lệnh Global có thể mất một vài phút đến 1 giờ để Discord đồng bộ tới tất cả máy chủ.');
+      console.log(`[Deploy] ✅ Đã cập nhật thành công ${registered.length} lệnh Global: ${commandNames}`);
+      console.log('[Deploy] ℹ️ Discord có thể mất vài phút đến 1 giờ để đồng bộ lệnh Global tới tất cả máy chủ.');
     }
   } catch (error) {
     console.error('[Deploy] ❌ Lỗi khi triển khai Slash Commands:', error);
