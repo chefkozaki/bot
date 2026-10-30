@@ -4,6 +4,8 @@ const { deployCommands } = require('./src/deploy');
 const promptManager = require('./src/services/promptManager');
 const channelManager = require('./src/services/channelManager');
 const db = require('./src/services/db');
+const changelogManager = require('./src/services/changelogManager');
+const { splitMessage } = require('./src/utils/splitMessage');
 const { handleMessageCreate } = require('./src/handlers/messageCreate');
 const { handleInteractionCreate } = require('./src/handlers/interactionCreate');
 
@@ -20,6 +22,9 @@ async function main() {
 
   // Khởi tạo ChannelManager (tải danh sách kênh bị tắt)
   await channelManager.init();
+
+  // Khởi tạo cấu hình kênh changelog theo từng máy chủ
+  await changelogManager.init();
 
   // Khởi tạo Database Turso / SQLite cho Moderation
   await db.init();
@@ -46,7 +51,7 @@ async function main() {
   });
 
   // Sự kiện khi Bot sẵn sàng hoạt động
-  client.once(Events.ClientReady, (readyClient) => {
+  client.once(Events.ClientReady, async (readyClient) => {
     console.log(`✅ Bot đã đăng nhập thành công với tên: ${readyClient.user.tag}`);
     console.log(`📡 Đang hoạt động trên ${readyClient.guilds.cache.size} máy chủ.`);
     console.log(`🧠 AI Model sử dụng: ${config.groqModel}`);
@@ -63,6 +68,32 @@ async function main() {
     const disabledList = channelManager.getDisabledChannels();
     console.log(`🔇 Kênh đang bị tắt (${disabledList.length}): ${disabledList.length > 0 ? disabledList.join(', ') : 'Không có'}`);
     console.log(`💬 Bỏ qua reply đến bot: ${config.ignoreBotReplies ? 'ĐANG BẬT (Không trả lời khi reply)' : 'ĐANG TẮT (Vẫn trả lời)'}`);
+
+    // Gửi changelog tự động vào kênh đã thiết lập cho từng máy chủ
+    let changelog = null;
+    try {
+      changelog = await changelogManager.getChangelog();
+    } catch (error) {
+      console.error('[Changelog] Không thể đọc file changelog:', error.message);
+    }
+    if (changelog) {
+      const changelogSettings = await changelogManager.getSettings();
+      for (const [guildId, channelId] of Object.entries(changelogSettings)) {
+        if (!readyClient.guilds.cache.has(guildId)) continue;
+        try {
+          const channel = await readyClient.channels.fetch(channelId);
+          if (!channel?.isTextBased()) continue;
+          for (const chunk of splitMessage(changelog, { maxLength: 1900 })) {
+            await channel.send(chunk);
+          }
+          console.log(`[Changelog] Đã gửi changelog vào kênh ${channelId} của máy chủ ${guildId}`);
+        } catch (error) {
+          console.error(`[Changelog] Không thể gửi changelog vào kênh ${channelId}:`, error.message);
+        }
+      }
+    } else {
+      console.warn('[Changelog] Không tìm thấy file changelog.md; bỏ qua gửi changelog khi khởi động.');
+    }
 
     // Đặt trạng thái hoạt động của Bot
     readyClient.user.setPresence({

@@ -48,7 +48,12 @@ Bot Discord thông minh được xây dựng bằng **Node.js** và thư viện 
      - Hoặc gõ `/changesys` (không điền tham số) để mở **Bảng soạn thảo đa dòng (Modal)** với nội dung prompt hiện tại được điền sẵn để dễ dàng chỉnh sửa.
      - Tùy chọn khôi phục về prompt ban đầu (`reset_mac_dinh: true`).
 
-6. **Lưu trữ bền vững (Persistence):**
+6. **Changelog và thông báo khởi động:**
+   - `/changelog`: Hiển thị toàn bộ nội dung `changelog.md` với định dạng Markdown.
+   - `/setlog channel:<kênh>`: Thiết lập kênh nhận changelog khi bot khởi động. Lệnh yêu cầu quyền Administrator hoặc role được cấu hình.
+   - Cấu hình được lưu theo từng máy chủ trong database Turso (hoặc SQLite local fallback). Nếu phát hiện file JSON cũ, bot tự động chuyển sang database và xoá file đó.
+
+7. **Lưu trữ bền vững (Persistence):**
    - Lịch sử vi phạm Moderation lưu qua **Turso Database** (`@libsql/client`).
    - System Prompt được lưu vào file `data/system_prompt.txt`.
    - Danh sách các kênh bị tắt bot được lưu vào file `data/disabled_channels.json`.

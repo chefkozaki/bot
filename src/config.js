@@ -30,6 +30,8 @@ const config = {
   dataDir: path.resolve(__dirname, '../data'),
   systemPromptFile: path.resolve(__dirname, '../data/system_prompt.txt'),
   disabledChannelsFile: path.resolve(__dirname, '../data/disabled_channels.json'),
+  changelogChannelsFile: path.resolve(__dirname, '../data/changelog_channels.json'),
+  changelogFile: path.resolve(__dirname, '../changelog.md'),
 
   // Reply settings
   // true: bỏ qua không trả lời khi user reply tin nhắn của bot

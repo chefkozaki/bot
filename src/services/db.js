@@ -81,6 +81,15 @@ async function init() {
       ON moderation_logs (guild_id, action_type);
     `);
 
+    // Bảng cấu hình kênh changelog theo từng máy chủ
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS changelog_settings (
+        guild_id TEXT PRIMARY KEY,
+        channel_id TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     isInitialized = true;
     console.log('[Database] ✅ Khởi tạo bảng dữ liệu Moderation thành công!');
   } catch (error) {
@@ -200,9 +209,50 @@ async function getGuildSummary({ guildId, actionType, limit = 25 }) {
   return result.rows || [];
 }
 
+async function setChangelogChannel(guildId, channelId) {
+  const db = getClient();
+  if (!isInitialized) await init();
+
+  await db.execute({
+    sql: `
+      INSERT INTO changelog_settings (guild_id, channel_id, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(guild_id) DO UPDATE SET
+        channel_id = excluded.channel_id,
+        updated_at = CURRENT_TIMESTAMP
+    `,
+    args: [String(guildId), String(channelId)],
+  });
+}
+
+async function getChangelogChannel(guildId) {
+  const db = getClient();
+  if (!isInitialized) await init();
+
+  const result = await db.execute({
+    sql: 'SELECT channel_id FROM changelog_settings WHERE guild_id = ? LIMIT 1',
+    args: [String(guildId)],
+  });
+  return result.rows[0]?.channel_id ? String(result.rows[0].channel_id) : null;
+}
+
+async function getAllChangelogSettings() {
+  const db = getClient();
+  if (!isInitialized) await init();
+
+  const result = await db.execute('SELECT guild_id, channel_id FROM changelog_settings');
+  return (result.rows || []).map((row) => ({
+    guildId: String(row.guild_id),
+    channelId: String(row.channel_id),
+  }));
+}
+
 module.exports = {
   init,
   recordModeration,
   getUserHistory,
   getGuildSummary,
+  setChangelogChannel,
+  getChangelogChannel,
+  getAllChangelogSettings,
 };
